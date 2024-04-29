@@ -1,0 +1,111 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define MAX_TASKS 10
+#define MAX_TASK_LENGTH 50
+
+struct Task {
+    char description[MAX_TASK_LENGTH];
+    int priority;
+    int completed;
+};
+
+void addTask(struct Task tasks[], int *numTasks) {
+    if (*numTasks >= MAX_TASKS) {
+        printf("Task planner is full!\n");
+        return;
+    }
+
+    printf("Enter task description: ");
+    fgets(tasks[*numTasks].description, sizeof(tasks[*numTasks].description), stdin);
+    tasks[*numTasks].description[strcspn(tasks[*numTasks].description, "\n")] = '\0';
+
+    printf("Enter priority (1-10): ");
+    scanf("%d", &tasks[*numTasks].priority);
+    getchar();
+    
+    tasks[*numTasks].completed = 0; // task is not completed initially
+    (*numTasks)++;
+}
+
+void deleteTask(struct Task tasks[], int *numTasks) {
+    if (*numTasks == 0) {
+        printf("No tasks to delete.\n");
+        return;
+    }
+
+    int index;
+    printf("Enter the index of the task to delete: ");
+    scanf("%d", &index);
+    getchar();
+
+    if (index < 1 || index > *numTasks) {
+        printf("Invalid task index.\n");
+        return;
+    }
+
+    for (int i = index - 1; i < *numTasks - 1; i++) {
+        strcpy(tasks[i].description, tasks[i + 1].description);
+        tasks[i].priority = tasks[i + 1].priority;
+        tasks[i].completed = tasks[i + 1].completed;
+    }
+
+    (*numTasks)--;
+    printf("Task deleted successfully.\n");
+}
+
+void displayTasks(struct Task tasks[], int numTasks) {
+    if (numTasks == 0) {
+        printf("No tasks planned for today.\n");
+        return;
+    }
+
+    printf("Today's tasks:\n");
+    for (int i = 0; i < numTasks; i++) {
+        printf("%d. %s - Priority: %d - %s\n", i + 1, tasks[i].description, tasks[i].priority, tasks[i].completed ? "Completed" : "Not completed");
+    }
+}
+
+int compareTasks(const void *task1, const void *task2) {
+    const struct Task *t1 = task1;
+    const struct Task *t2 = task2;
+    return t2->priority - t1->priority;
+}
+
+int main() {
+    struct Task tasks[MAX_TASKS];
+    int numTasks = 0;
+    char choice;
+
+    do {
+        printf("\nMenu:\n");
+        printf("1. Add Task\n");
+        printf("2. Delete Task\n");
+        printf("3. Display Tasks\n");
+        printf("4. Exit\n");
+        printf("Enter your choice: ");
+        scanf(" %c", &choice);
+        getchar();
+
+        switch (choice) {
+            case '1':
+                addTask(tasks, &numTasks);
+                break;
+            case '2':
+                deleteTask(tasks, &numTasks);
+                break;
+            case '3':
+                qsort(tasks, numTasks, sizeof(struct Task), compareTasks);
+                displayTasks(tasks, numTasks);
+                break;
+            case '4':
+                printf("Exiting...\n");
+                break;
+            default:
+                printf("Invalid choice. Please try again.\n");
+        }
+    } while (choice != '4');
+
+    return 0;
+}
